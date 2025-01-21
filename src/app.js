@@ -13,10 +13,6 @@ app.get("/", (req, res) => {
   res.send("namaste from homepage");
 });
 
-// app.use("/user",(req,res)=>{ 
-//         res.send("namaste from homepage");
-// });    
-
 //our router will not listen to any http request if we use {app.use("/user"),()=>{}} it here rather then
 //we'll use it after all the get ,post,patch ,delete requset of the user
 //so that when it is accessed sequentially , it encounters at the last
@@ -25,6 +21,10 @@ app.get("/", (req, res) => {
 app.get("/user", (req, res) => {
     
   res.send({ name: "harsh", course: "btech",userId:req.query.userId });
+});
+app.get("/user/:userId/:name", (req, res) => {
+    
+  res.send({ name: req.params.name,userId:req.params.userId });
 });
 app.post("/user", (req, res) => {
   res.send("data sent successfully to the db");

@@ -23,7 +23,8 @@ app.get("/", (req, res) => {
 
 
 app.get("/user", (req, res) => {
-  res.send({ name: "harsh", course: "btech" });
+    
+  res.send({ name: "harsh", course: "btech",userId:req.query.userId });
 });
 app.post("/user", (req, res) => {
   res.send("data sent successfully to the db");

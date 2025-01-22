@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const{adminAuth,userAuth}= require("./middleWare/auth");
 // console.log("new project");
 
 //this will listen to all http requests whether they are get or post etc.....
@@ -18,21 +19,29 @@ app.get("/", (req, res) => {
 //so that when it is accessed sequentially , it encounters at the last
 
 
-app.get("/user", (req, res) => {
+app.get("/user",userAuth, (req, res) => {
     
   res.send({ name: "harsh", course: "btech",userId:req.query.userId });
 });
-app.get("/user/:userId/:name", (req, res) => {
+app.get("/user/:userId/:name",userAuth, (req, res) => {
     
   res.send({ name: req.params.name,userId:req.params.userId });
 });
-app.post("/user", (req, res) => {
+app.post("/user", userAuth, (req, res) => {
   res.send("data sent successfully to the db");
 });
-app.delete("/user", (req, res) => {
+app.delete("/user",userAuth, (req, res) => {
   res.send("deleted successfully!");
 });
 
 app.listen(1000, () =>
   console.log("listening successfully on port number 1000 ")
 );
+
+app.get("/admin/user",adminAuth,(req,res)=>{
+  res.send("data sent successfully")
+});
+app.delete("/admin/user",adminAuth,(req,res)=>{
+  res.send("data deleted successfully")
+});
+

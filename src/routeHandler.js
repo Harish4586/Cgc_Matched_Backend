@@ -17,3 +17,6 @@ app.use("/user",(req,res,next)=>{
 //or
 // app.use("/route",[routehandler1,routehandler2],routehandler3,routehandler4,routehandler5);
 
+// the callback fn in app.use("/",()=>{}) is called middleware
+//and actually all the route handlers which don't send a particular response to a request are called middlewares
+

@@ -34,9 +34,7 @@ app.delete("/user",userAuth, (req, res) => {
   res.send("deleted successfully!");
 });
 
-app.listen(1000, () =>
-  console.log("listening successfully on port number 1000 ")
-);
+
 
 app.get("/admin/user",adminAuth,(req,res)=>{
   res.send("data sent successfully")
@@ -44,4 +42,7 @@ app.get("/admin/user",adminAuth,(req,res)=>{
 app.delete("/admin/user",adminAuth,(req,res)=>{
   res.send("data deleted successfully")
 });
+app.listen(1000, () =>
+  console.log("listening successfully on port number 1000 ")
+);
 

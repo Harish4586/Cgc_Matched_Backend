@@ -33,6 +33,34 @@ app.post("/signup", async (req, res) => {
   // console.log(req.body); //this will not come in json format so we use express .json() in app.use so that it can be used widely
 });
 
+//api to get a user by passing email id
+
+app.get("/getUser", async(req,res)=>{
+  const userEmail= req.body.emailId;
+  try{
+    const users= await User.find({emailId:userEmail});
+    if(users.length!=0){res.send(users);}
+    else{
+      res.status(404).send("oops! user not found..");
+    }
+
+  }
+  catch{
+    res.status(400).send("error encounterd");
+  }
+});
+
+//api to get all the users-feed Api
+app.get("/feed",async(req,res)=>{
+  try{
+    const users= await User.find({});
+    res.send(users);
+  }
+  catch(err){
+    res.status(400).send("something went wrong");
+  }
+})
+
 dbConnect()
   .then(() => {
     console.log("databse connected successfully");

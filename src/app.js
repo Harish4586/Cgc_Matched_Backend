@@ -1,48 +1,44 @@
 const express = require("express");
 const app = express();
 const{adminAuth,userAuth}= require("./middleWare/auth");
-// console.log("new project");
-
-//this will listen to all http requests whether they are get or post etc.....
-
-// app.use("/",(req,res)=>{
-//     res.send("namaste from homepage");
-// });
-
-// but the app.get will only listen to http get request
-app.get("/", (req, res) => {
-  res.send("namaste from homepage");
-});
-
-//our router will not listen to any http request if we use {app.use("/user"),()=>{}} it here rather then
-//we'll use it after all the get ,post,patch ,delete requset of the user
-//so that when it is accessed sequentially , it encounters at the last
+require("./config/database");
+const dbConnect=require("./config/database");
+const User= require("./models/user");
 
 
-app.get("/user",userAuth, (req, res) => {
-    
-  res.send({ name: "harsh", course: "btech",userId:req.query.userId });
-});
-app.get("/user/:userId/:name",userAuth, (req, res) => {
-    
-  res.send({ name: req.params.name,userId:req.params.userId });
-});
-app.post("/user", userAuth, (req, res) => {
-  res.send("data sent successfully to the db");
-});
-app.delete("/user",userAuth, (req, res) => {
-  res.send("deleted successfully!");
-});
+app.post("/signup", async (req,res)=>{
+  const UserObj={
+    firstName:"avni",
+    lastName:"jain",
+    emailId:"avni@jain.com",
+    password:"avni@123",
+    age:22,
+    gender:"female"
+  }
+  //creating a new instance of the user model by passing UserObj 
+
+  const user=new User(UserObj);
+   //now this user.save fn will be returning a promise so we'll make the whole post fn as async await
+
+   //and also we can use try catch block to handle erros
+   try{
+    await user.save();
+   res.send("user data saved successfully");
+   } catch(err){
+    res.status(400).send("error occured");
+   }
+})
+
+
+dbConnect().then(()=>{
+  console.log("databse connected successfully");
+  app.listen(1000, () =>
+    console.log("listening successfully on port number 1000 ")
+  );
+  }).catch((err)=>{
+    console.error("database didn't connect");
+  });
 
 
 
-app.get("/admin/user",adminAuth,(req,res)=>{
-  res.send("data sent successfully")
-});
-app.delete("/admin/user",adminAuth,(req,res)=>{
-  res.send("data deleted successfully")
-});
-app.listen(1000, () =>
-  console.log("listening successfully on port number 1000 ")
-);
 

@@ -1,115 +1,120 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const app = express();
-const { adminAuth, userAuth } = require("./middleWare/auth");
 require("./config/database");
 const dbConnect = require("./config/database");
 const User = require("./models/user");
-const { Model, isValidObjectId } = require("mongoose");
 
+app.use(express.json()); // Middleware to parse incoming JSON requests
 
-app.use(express.json());//convert incoming req.body into proper format
-
+// Route to create a new user
 app.post("/user", async (req, res) => {
-  // const UserObj={
-  //   firstName:"avni",
-  //   lastName:"jain",
-  //   emailId:"avni@jain.com",
-  //   password:"avni@123",
-  //   age:22,
-  //   gender:"female"
-  // }
-  //creating a new instance of the user model by passing UserObj
+  const user = new User(req.body); // Creating a new user instance
 
-  // const user=new User(UserObj);
-  const user2= new User(req.body);
-  // now this user.save fn will be returning a promise so we'll make the whole post fn as async await
-
-  //and also we can use try catch block to handle erros
-   try{
-    await user2.save();
-   res.send("user data saved successfully");
-   } catch(err){
-    res.status(400).send(err);
-   }
-
-  // console.log(req.body); //this will not come in json format so we use express .json() in app.use so that it can be used widely
+  try {
+    await user.save(); // Saving the user to the database
+    res.status(201).send("User data saved successfully");
+  } catch (err) {
+    res.status(400).send({ error: "Error saving user data", details: err.message });
+  }
 });
 
-//api to get a user by passing email id or _id
+// API to get a user by email or _id
+app.get("/user", async (req, res) => {
+  const { emailId, _id } = req.body;
 
-app.get("/user", async(req,res,next)=>{
-  const userEmail= req.body.emailId;
-  if(userEmail) {
-  try{
-    const users= await User.find({emailId:userEmail});
-    if(users.length!=0){res.send(users);}
-    else{
-      res.status(404).send("oops! user not found..");
+  if (emailId) {
+    try {
+      const users = await User.find({ emailId });
+      if (users.length !== 0) {
+        res.send(users);
+      } else {
+        res.status(404).send("User not found.");
+      }
+    } catch (err) {
+      res.status(400).send({ error: "Error finding user", details: err.message });
     }
-
+  } else if (_id) {
+    if (!mongoose.isValidObjectId(_id)) {
+      return res.status(400).send("Invalid ID format.");
+    }
+    try {
+      const user = await User.findById(_id);
+      if (user) {
+        res.send(user);
+      } else {
+        res.status(404).send("User not found.");
+      }
+    } catch (err) {
+      res.status(400).send({ error: "Error finding user by ID", details: err.message });
+    }
+  } else {
+    res.status(400).send("Please provide emailId or _id to search for a user.");
   }
-  catch{
-    res.status(400).send("error encounterd");
-  }
-}
+});
 
-else if(req.body._id){
+// API to get all users (Feed API)
+app.get("/feed", async (req, res) => {
   try {
-    const user = await User.findById(req.body._id); // Use findById for better readability and efficiency
-    if (user) {
-      res.send(user);
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.status(400).send({ error: "Error fetching users", details: err.message });
+  }
+});
+
+// API to delete a user
+app.delete("/user", async (req, res) => {
+  const { _id } = req.body;
+
+  if (!mongoose.isValidObjectId(_id)) {
+    return res.status(400).send("Invalid ID format.");
+  }
+
+  try {
+    const result = await User.findByIdAndDelete(_id);
+    if (result) {
+      res.send("User deleted successfully");
     } else {
-      res.status(404).send("oops! user not found..");
+      res.status(404).send("User not found.");
     }
   } catch (err) {
-    res.status(400).send("something went wrong");
-  }
-}
-});
-
-//api to get all the users-feed Api
-app.get("/feed",async(req,res)=>{
-  try{
-    const users= await User.find({});
-    res.send(users);
-  }
-  catch(err){
-    res.status(400).send("something went wrong");
-  }
-});
- 
-app.delete("/user",async (req,res)=>{
-  try{
-    await User.findByIdAndDelete(req.body._id);
-    res.send("user deleted successfully");
-  }catch(err){
-    res.status(400).send("something went wrong!!!!");
+    res.status(400).send({ error: "Error deleting user", details: err.message });
   }
 });
 
-//patch api
-app.patch("/user",async(req,res)=>{
-  const filter={emailId:req.body.emailId};
-  const update={gender:req.body.gender};
-  const options= {new:true,runValidators: true}; //the runValidators first will run validate fn in userScema and then update database
- 
-   try {
-     const doc=await User.findOneAndUpdate(filter, update, options);
-    res.send("updated successfully");
-   }
-   catch(err){
-    res.status(400).send("something went wrong"+err);
-   }
-})
+// API to update user details
+app.patch("/user", async (req, res) => {
+  //putting update validations that  user can update what fields of the data
+  const updates = req.body;
+  const allowedUpdates = ["age", "gender","userId"];
+  const isUpdateAllowed = Object.keys(updates).every((key) => allowedUpdates.includes(key));
 
+  if (!isUpdateAllowed) {
+    return res.status(400).send("Some update fields are not allowed.");
+  }
 
+  try {
+    const filter = { _id: req.body.userId};
+    const options = { new: true, runValidators: true }; // Ensures validation rules are checked
+    const updatedUser = await User.findOneAndUpdate(filter, updates, options);
+
+    if (updatedUser) {
+      res.send("User updated successfully");
+    } else {
+      res.status(404).send("User not found.");
+    }
+  } catch (err) {
+    res.status(400).send({ error: "Error updating user", details: err.message });
+  }
+});
+
+// Database connection and server start
 dbConnect()
   .then(() => {
-    console.log("databse connected successfully");
-    app.listen(1000, () =>
-      console.log("listening successfully on port number 1000 ")
-    );
+    console.log("Database connected successfully");
+    app.listen(1000, () => console.log("Server is running on port 1000"));
   })
   .catch((err) => {
-    console.error("database didn't connect");
+    console.error("Database connection failed:", err.message);
   });

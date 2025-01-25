@@ -5,24 +5,18 @@ require("./config/database");
 const dbConnect = require("./config/database");
 const User = require("./models/user");
 const Joi= require("joi");
+const {ValidateSignUp,ValidatePutApi}=require("./helpers/validation");
 
 app.use(express.json()); // Middleware to parse incoming JSON requests
 
 // Route to create a new user
 app.post("/user", async (req, res) => {
    // Define the validation schema for the user
-   const schema = Joi.object({
-    firstName: Joi.string().min(2).max(40).required().trim(),
-    lastName: Joi.string().optional().trim(),
-    emailId: Joi.string().email().required().trim().lowercase(),
-    password: Joi.string().min(6).required().trim(),
-    age: Joi.number().min(18).max(100).optional(),
-    gender: Joi.string().valid("male", "female", "others").required(),
-  });
-  const {error,value}= schema.validate(req.body);//validate req.body according to defined schema
-  if(error){return res.status(400).send({error:"error while signing up"})}
+  
   try {
+    const value= await ValidateSignUp(req);
     // Create a new user instance using the validated data
+    console.log(",getting value",value);
     const user = new User(value);
 
     // Save the user to the database
@@ -127,23 +121,10 @@ app.patch("/user", async (req, res) => {
 });
 
 app.put("/user", async (req, res) => {
-  const schema = Joi.object({
-    emailId: Joi.string().email().required(),
-    lastName: Joi.string().optional(),
-    gender: Joi.string().valid("male", "female", "others").optional(),
-    age: Joi.number().min(18).max(100).optional(),
-    password: Joi.string().optional(),
-  });
-
-  // Validate request body
-  const { error, value } = schema.validate(req.body);
-  if (error) {
-    return res.status(400).send({ error: error.details[0].message });
-  }
-
-  const { emailId, ...updates } = value;
-
+    
   try {
+    const value= ValidatePutApi(req);
+    const { emailId, ...updates } = value;
     const options = { new: true, runValidators: true };
     const updatedUser = await User.findOneAndUpdate({ emailId }, updates, options);
     if (!updatedUser) {

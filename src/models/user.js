@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator=require("validator");
 
 // Step 1: Create schema
 const userSchema = mongoose.Schema(
@@ -9,11 +10,21 @@ const userSchema = mongoose.Schema(
       trim: true,
       minlength: [2, "First name must be at least 2 characters"],
       maxlength: [40, "First name cannot exceed 40 characters"],
+      validate(value){
+        if(!validator.isAlpha(value, 'en-US', { ignore: ' -\'' })){
+          throw new Error("First name can only contain letters, spaces, hyphens, or apostrophes");
+        }
+      }
     },
     lastName: {
       type: String,
       trim: true,
       maxlength: [40, "Last name cannot exceed 40 characters"],
+      validate(value){
+        if(!validator.isAlpha(value, 'en-US', { ignore: ' -\'' })){
+          throw new Error("Last name can only contain letters, spaces, hyphens, or apostrophes");
+        }
+      }
     },
     emailId: {
       type: String,
@@ -21,11 +32,11 @@ const userSchema = mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      validate: {
-        validator: function (value) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); // Email regex
-        },
-        message: "Invalid email format",
+      validate(value) {
+        if(!validator.isEmail(value)){
+          throw new Error("Invalid email format");
+        }
+        // message: "Invalid email format",
       },
     },
     password: {
@@ -34,13 +45,11 @@ const userSchema = mongoose.Schema(
       unique: true,
       trim: true,
       minlength: [8, "Password must be at least 8 characters"],
-      validate: {
-        validator: function (value) {
-          // At least one uppercase letter, one lowercase letter, one number, and one special character
-          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
-        },
-        message:
-          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      validate(value) {
+        if(!validator.isStrongPassword(value)){
+          throw new Error("Invalid password format");
+        }
+        
       },
     },
     age: {
@@ -48,6 +57,12 @@ const userSchema = mongoose.Schema(
       trim: true,
       min: [18, "Age must be at least 18"],
       max: [100, "Age cannot exceed 100"],
+      validate(age) {
+        // Ensure age is a valid number and falls within a specific range (e.g., 18 to 100)
+        if (!Number.isInteger(age) || age < 18 || age > 100) {
+          throw new Error("Age must be an integer between 18 and 100");
+        }
+      }
     },
     gender: {
       type: String,

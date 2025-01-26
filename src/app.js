@@ -5,18 +5,21 @@ require("./config/database");
 const dbConnect = require("./config/database");
 const User = require("./models/user");
 const Joi= require("joi");
-const {ValidateSignUp,ValidatePutApi}=require("./helpers/validation");
+const {ValidateSignUp,ValidatePutApi,ValidataLogin}=require("./helpers/validation");
+const cookieParser= require("cookie-parser");
+const jwt= require("jsonwebtoken");
 
 app.use(express.json()); // Middleware to parse incoming JSON requests
+app.use(cookieParser());
 
 // Route to create a new user
 app.post("/user", async (req, res) => {
    // Define the validation schema for the user
   
   try {
-    const value= await ValidateSignUp(req);
+    const value= await ValidateSignUp(req);//the validate fn will always return promise and we have to use await to resolve
     // Create a new user instance using the validated data
-    console.log(",getting value",value);
+    // console.log(",getting value",value);
     const user = new User(value);
 
     // Save the user to the database
@@ -135,6 +138,48 @@ app.put("/user", async (req, res) => {
     res.status(400).send({ error: "Failed to update user", details: err.message });
   }
 });
+  //login api
+app.post("/login", async (req, res) => {
+    try {
+      // Validate login data
+      const userData = await ValidataLogin(req);
+      if(!userData){throw new Error("user not found")}
+
+      //creating a token for every user by passing id of user and a private key
+      //using jsonwebtoken library
+       const token= jwt.sign({_id:userData.userId},"Harsh@123$123");
+
+       //sending cookie to browser
+       res.cookie("token",token);
+      // Send success response
+      res.status(200).send({
+        success: true,
+        message: "User logged in successfully",
+        data: userData,
+      });
+    } catch (err) {
+      // Send error response
+      res.status(400).send({
+        success: false,
+        message: "Unable to login",
+        error: err.message,
+      });
+    }
+  });
+
+app.get("/profile", async(req,res)=>{
+
+    const cookiee=req.cookies;
+    const {token}= cookiee;
+    // console.log(token);  //read the cookie using cookie parser here
+    //validating the token here !!! by passing the token and the private key 
+    const decodedMessage= jwt.verify(token,"Harsh@123$123"); 
+    const {_id}=decodedMessage;
+    const user= await User.findById({_id});
+    // console.log(user);
+    res.send("fetched profile successfully..."+user);
+  })
+  
 
 // Database connection and server start
 dbConnect()

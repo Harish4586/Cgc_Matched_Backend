@@ -1,6 +1,7 @@
 
 const Joi= require("joi");
 const bcrypt = require("bcrypt");
+const User = require("../models/user");
 
 const ValidateSignUp= async (req)=>{
 
@@ -40,6 +41,32 @@ const ValidatePutApi=(req)=>{
      return value;
 };
 
+const ValidataLogin = async (req) => {
+    const { emailId, password } = req.body;
+    // console.log(req.body);
+  
+    // Check if emailId and password are provided
+    if (!emailId || !password) {
+      throw new Error("Email and password are required!");
+    }
+  
+    // Find user by email
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      throw new Error("User not found! Please check the email.");
+    }
+  
+    // Compare password with the stored hash
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      throw new Error("Invalid password!");
+    }
+  
+    // Return validated user details
+    return {userId:user._id, emailId, firstName: user.firstName, lastName: user.lastName };
+  };
+  
+
 module.exports={
-    ValidateSignUp,ValidatePutApi
+    ValidateSignUp,ValidatePutApi,ValidataLogin
 };

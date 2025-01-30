@@ -37,3 +37,34 @@ app.get("/admin/user",adminAuth,(req,res)=>{
 app.delete("/admin/user",adminAuth,(req,res)=>{
   res.send("data deleted successfully")
 });
+
+profileRouter.patch("/profile/edit",userAuth, async(req,res)=>{
+    try{
+      const cookiee= req.cookies;
+      const{token}= cookiee;
+      const decodedMessage = jwt.verify(token, "Harsh@123$123");
+      const{_id}= decodedMessage;
+      const updates = req.body;
+         const allowedUpdates = ["age", "gender","lastName","password"];
+        const isUpdateAllowed = Object.keys(updates).every((key) => allowedUpdates.includes(key));
+      
+        if (!isUpdateAllowed) {
+          throw new Error("can't update user!!!!");
+      }
+          const filter = { _id:_id};
+          const options = { new: true, runValidators: ValidatePutApi(req) }; // Ensures validation rules are checked
+          const updatedUser = await User.findOneAndUpdate(filter, updates, options);
+      
+          if (updatedUser) {
+            res.send("User updated successfully"+updatedUser);
+          } else {
+            throw new Error("user was not updated");
+          }
+
+    }
+    catch(err){
+      res.status(400).send("can't update user at this time!!!"+err);
+
+    }
+
+})

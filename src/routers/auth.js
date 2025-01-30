@@ -5,6 +5,8 @@ const {
   ValidataLogin,
   ValidatePutApi,
 } = require("../helpers/validation");
+const jwt= require("jsonwebtoken");
+
 
 const authRouter = express.Router();
 
@@ -67,9 +69,25 @@ authRouter.post("/login", async (req, res) => {
 });
 
 //logout api
-authRouter.post("/logout", (req, res) => {
-  res.cookie("token", null, { expires: new Date(Date.now()) });
-  res.send("logout successfully");
+authRouter.post("/logout", async (req, res) => {
+
+try { 
+//     const cookiee= req.cookies;
+//     const {token}= cookiee;
+//     const decodedMessage = await jwt.verify(token,"Harsh@123$123");
+//     const {_id}= decodedMessage;
+//     const user= await User.findById({_id});
+//     if(!user){throw new Error("user not found")}
+//      res.cookie("token", null, { expires: new Date(Date.now()) });
+//   res.send("logout successfully: "+user.firstName);
+
+//btw there is no harm to let the user logout without knowing if he is logged in or not!
+res.cookie("token", null, { expires: new Date(Date.now()) });
+res.send("logout successfully: ");
+}
+  catch(err){
+    res.status(400).send("error occured while logging out!!!"+err);
+  }
 });
 
 module.exports = authRouter;

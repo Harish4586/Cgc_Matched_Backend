@@ -26,7 +26,6 @@ const schema = Joi.object({
 
 const ValidatePutApi=(req)=>{
      const schema = Joi.object({
-        emailId: Joi.string().email().required(),
         lastName: Joi.string().optional(),
         gender: Joi.string().valid("male", "female", "others").optional(),
         age: Joi.number().min(18).max(100).optional(),

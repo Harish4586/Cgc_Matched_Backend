@@ -52,18 +52,21 @@ const ValidataLogin = async (req) => {
   
     // Find user by email
     const user = await User.findOne({ emailId });
+
     if (!user) {
       throw new Error("User not found! Please check the email.");
     }
+    
+    const token = await user.getJWT();
   
     // Compare password with the stored hash
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await user.isValidPassword(password);
     if (!isValidPassword) {
       throw new Error("Invalid password!");
     }
   
     // Return validated user details
-    return {userId:user._id, emailId, firstName: user.firstName, lastName: user.lastName };
+    return {userId:user._id, emailId, firstName: user.firstName, lastName: user.lastName,token };
   };
   
 

@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 
 
 // Step 1: Create schema
+//note: we can use  validator functions or enum to validate the schema
 const userSchema =new mongoose.Schema(
   {
     firstName: {
@@ -45,7 +46,6 @@ const userSchema =new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      unique: true,
       trim: true,
       minlength: [8, "Password must be at least 8 characters"],
       validate(value) {
@@ -70,12 +70,16 @@ const userSchema =new mongoose.Schema(
     gender: {
       type: String,
       trim: true,
-      validate: {
-        validator: function (value) {
-          return ["male", "female", "others"].includes(value);
-        },
-        message: "Gender must be one of the following: male, female, others",
-      },
+      enum:{
+        values:["male","female","others"],
+        message:`{VALUE} is not a valid gender!!`
+      }
+      // validate: {
+      //   validator: function (value) {
+      //     return ["male", "female", "others"].includes(value);
+      //   },
+      //   message: "Gender must be one of the following: male, female, others",
+      // },
     },
   },
   { timestamps: true }
@@ -91,8 +95,11 @@ userSchema.methods.isValidPassword= async function(passwordInputBYUser){
       return isValidPassword;
   
 }
+//using compound index to make queries faster on the two fields of a given schema
+userSchema.index({firstName:1,lastName:1});
 
 // Step 2: Define a new model
+//note : A model name always starts with capital letter eg:UserModel,User
 const UserModel = mongoose.model("User", userSchema);
 
 module.exports = UserModel;

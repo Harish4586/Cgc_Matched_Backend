@@ -13,6 +13,7 @@ const schema = Joi.object({
     age: Joi.number().min(18).max(100).optional(),
     gender: Joi.string().valid("male", "female", "others").required(),
   });
+  
   const {error,value}= schema.validate(req.body);//validate req.body according to defined schema
   if(error){throw new Error("error while signing up in validation!!!")};
     // Hash the password
@@ -59,9 +60,9 @@ const ValidataLogin = async (req) => {
     const token = await user.getJWT();
   
     // Compare password with the stored hash
-    const isValidPassword = await user.isValidPassword(password);
-    if (!isValidPassword) {
-      throw new Error("Invalid password!");
+    const ifValidPassword = await user.isValidPassword(password);
+    if (!ifValidPassword) {
+      throw new Error("Invalid password!!");
     }
   
     // Return validated user details

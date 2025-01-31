@@ -19,3 +19,11 @@
 
 -/request/review/:status/:toUserId
 (status= accept, reject)
+
+
+# userRouter
+
+-GET /user/requests/recieved
+-GET /user/connections
+-GET /user/feed-gets you profile for other users on platform
+-

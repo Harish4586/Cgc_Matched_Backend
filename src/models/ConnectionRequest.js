@@ -1,10 +1,12 @@
 const { string, required } = require("joi");
 const mongoose= require("mongoose");
 
+
 const ConnectionSchema= new mongoose.Schema({
     fromUserId:{
         type:mongoose.Schema.Types.ObjectId,
-        required:true
+        required:true,
+        ref:"User",   //reference to user collection to populate recieved connectionRequests
     }
     ,toUserId:{
         type:mongoose.Schema.Types.ObjectId,

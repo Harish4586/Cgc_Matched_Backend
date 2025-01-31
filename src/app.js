@@ -12,9 +12,11 @@ app.use(cookieParser());
 const authRouter = require("./routers/auth");
 const profileRouter = require("./routers/profile");
 const connectionRouter = require("./routers/connection");
+const userRouter = require("./routers/userRouter");
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", connectionRouter);
+app.use("/", userRouter);
 
 // Database connection and server start
 dbConnect()

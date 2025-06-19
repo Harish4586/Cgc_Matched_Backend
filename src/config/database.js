@@ -3,11 +3,11 @@ const {CONNECTION_STRING}= require("../utils/constants");
 
 
 //it returns a promise that's why we use asyc await to properly handle this connection
-// mongoose.connect("mongodb+srv://harishnirbaan2000:DaaP6tZ9qRzAfWSY@cluster0.tjzus.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+// mongoose.connect(CONNECTION_STRING);
 
 const dbConnect= async ()=>{
     mongoose.connect(
-        "mongodb+srv://harishnirbaan2000:DaaP6tZ9qRzAfWSY@cluster0.tjzus.mongodb.net/CgcMatched");
+        CONNECTION_STRING);
 
 };
 //this is not the best way to connect with the databse because server is started first 

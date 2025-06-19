@@ -1,4 +1,5 @@
 const mongoose= require("mongoose");
+const {CONNECTION_STRING}= require("../utils/constants");
 
 
 //it returns a promise that's why we use asyc await to properly handle this connection

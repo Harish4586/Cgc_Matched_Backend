@@ -9,13 +9,12 @@ connectionRouter.post(
   userAuth,
   async (req, res) => {
     try {
-      const toUser = req.params.toUserId;
-      const isUserExists = await User.findById(toUser);
+      const toUserId = req.params.toUserId;
+      const isUserExists = await User.findById(toUserId);
       if (!isUserExists) {
         throw new Error("this user haven't registered in our application");
       }
       const fromUserId = req.user._id;
-      const toUserId = req.params.toUserId;
       const status = req.params.status;
 
       //validation1: a user can't send request to himself
@@ -68,39 +67,34 @@ connectionRouter.post(
 //status=intersted(this one->/request/send/:status/:toUserId)
 // requestId should be valid
 
-connectionRouter.post("/request/review/:status/:requestId",userAuth,async (req,res)=>{
-  try{
-    const loggedInUser= req.user;
-    const {status,requestId}= req.params;
-    //validation 1: check for allowed staus type
-    const allowedStatus= ["accept","reject"];
-    if(!allowedStatus.includes(status)){
-      res.status(400).json({message:"invalid status type!!"});
-    }
-    //validation 2: check if the requested user is present in db or not
-    const isUserExists=  await User.findById(requestId);
-    // console.log(isUserExists);
-    if(!isUserExists){throw new Error("user not found in database")};
-    //validation 3: check if we have the interested request (from : user of requestId,touser:current logged in user) present or not
-    const requestedConnection= await ConnectionRequestModel.findOne({
-      fromUserId:requestId,
-      toUserId:loggedInUser._id,
-      status:"interested"
-    });
-    // console.log(requestedUser);
-    if(!requestedConnection){
-      throw new Error(" can't found any request to accept!! ");
+connectionRouter.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    const { status, requestId } = req.params;
+    // Validation: Allowed status types
+    const allowedStatus = ["accept", "reject"];
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({ message: "Invalid status type!!" });
     }
 
-    requestedConnection.status=status;
-    const result=await requestedConnection.save();
-    res.send(status+" successfully"+" and the accepted request is "+result);
+    // Find the request by ID (not fromUserId)
+    const requestedConnection = await ConnectionRequestModel.findById(requestId);
+    
+    if (!requestedConnection) {
+      return res.status(404).json({ message: "Connection request not found!" });
+    }
 
+    // Update the status
+    requestedConnection.status = status;
+    await requestedConnection.save();
+
+    res.json({ message: `Request ${status} successfully`, requestId });
+
+  } catch (err) {
+    res.status(400).json({ message: "ERROR: " + err.message });
   }
-  catch(err){
-   res.status(400).send("ERROR: "+err.message);
-  }
-})
+});
+
 
 
 module.exports = connectionRouter;

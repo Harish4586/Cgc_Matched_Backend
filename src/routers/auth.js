@@ -5,8 +5,6 @@ const {
   ValidataLogin,
   ValidatePutApi,
 } = require("../helpers/validation");
-const jwt= require("jsonwebtoken");
-
 
 const authRouter = express.Router();
 
@@ -23,13 +21,11 @@ authRouter.post("/signup", async (req, res) => {
 
     // Save the user to the database
     await user.save();
-    const newUser = await User.findOne({ emailId });
-    const { _id } = newUser;
     const token = await user.getJWT();
     // console.log(token);
     res.cookie("token", token, { maxAge: 3600000 * 24 * 10 });
 
-    res.status(201).send("User data saved successfully");
+    res.json({data:user});
   } catch (err) {
     res
       .status(400)

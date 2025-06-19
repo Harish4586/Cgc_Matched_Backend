@@ -3,38 +3,48 @@ const { userAuth } = require("../middleWare/auth");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const profileRouter = express.Router();
-const {ValidatePutApi} = require("../helpers/validation");
+const { ValidatePutApi } = require("../helpers/validation");
 
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
-  const user= req.user;
-  res.send("fetched profile successfully..." + user);
+  try {
+    const user = req.user;
+    res.json({ data: user });
+  } catch (err) {
+    res.status(500).send("ERROR: " + err.message);
+  }
 });
 
-profileRouter.patch("/profile/edit",userAuth, async(req,res)=>{
-    try{
-      // const cookiee= req.cookies;
-      // const{token}= cookiee;
-      // const decodedMessage = jwt.verify(token, "Harsh@123$123");
-      // const{_id}= decodedMessage;
-      const user= req.user;
-      const {_id}= user;
-      const updates = req.body;
-        //we are validating user upadate req and their fields using validateputApi();
-          const filter = { _id:_id};
-          const options = { new: true, runValidators: ValidatePutApi(req) }; // Ensures validation rules are checked
-          const updatedUser = await User.findOneAndUpdate(filter, updates, options);
-      
-          if (updatedUser) {
-            res.send("User updated successfully"+updatedUser);
-          } else {
-            throw new Error("user was not updated");
-          }
-
-    }
-    catch(err){
-      res.status(400).send("can't update user at this time!!!"+err);
-
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: "Unauthorized: User not found" });
     }
 
-})
+    const userId = req.user._id;
+    
+    let validatedData;
+    try {
+      validatedData = ValidatePutApi(req);
+      console.log("Validated Data:", validatedData);
+    } catch (validationError) {
+      return res.status(400).json({ error: validationError.message });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      validatedData, // Use validated data
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found or update failed" });
+    }
+
+    res.json({ success: true, data: updatedUser });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ error: "Internal Server Error", details: err.message });
+  }
+});
+
 module.exports = profileRouter;

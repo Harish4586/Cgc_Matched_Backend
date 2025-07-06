@@ -20,6 +20,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
     return res.status(400).send("ERROR: " + err.message);
   }
 });
+//error resolved
 
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
